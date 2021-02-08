@@ -154,7 +154,8 @@ const std::string controlsString =
 "C: Center image in window\n"
 "0: Set zoom level to 1:1\n"
 "S: Switch between linear/nearest neighbour sampling\n"
-"H: Show these controls\n";
+"H: Show these controls\n"
+"Q: Quit application\n";
 
 void ImgviewApp::updateSamplingMode()
 {
