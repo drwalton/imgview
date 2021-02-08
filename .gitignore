@@ -1,0 +1,7 @@
+build
+build2017
+xcode
+bin
+lib
+*.swp
+
