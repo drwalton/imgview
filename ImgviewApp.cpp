@@ -26,7 +26,9 @@ std::wstring ToUtf16(std::string str)
 const std::vector<std::string> supportedExtensions = {
 	".png", ".jpg", ".jpeg",// ".gif",
 	".PNG", ".JPG", ".JPEG",//, ".GIF"
-	".webp", ".WEBP"
+	".webp", ".WEBP",
+	".tif", ".tiff", ".TIF", ".TIFF",
+	".pgm", ".PGM"
 	//".exr", ".EXR"
 };
 
