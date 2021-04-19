@@ -39,15 +39,16 @@ private:
 	SdlGlContext context_;
 	ShaderProgram shaderProgram_;
 
-	bool redraw_, running_, mouseDown_;
+	bool redraw_, running_, mouseDown_, alphaBlendEnabled_;
 	enum class SamplingMode {LINEAR, NEAREST};
 	SamplingMode samplingMode_;
 	void updateSamplingMode();
 	GLuint texture_;
 	float imAspect_, winAspect_, zoom_;
+	std::string imFormat_;
 	int imWidth_, imHeight_, winWidth_, winHeight_;
 	std::vector<boost::filesystem::directory_entry> imagePaths_;
-	size_t imagePathIdx_;
+	size_t imagePathIdx_, clearColorIdx_;
 	boost::filesystem::path initialImagePath_;
 	bool isFullscreen_;
 };

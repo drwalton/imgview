@@ -12,12 +12,13 @@ const std::string fragShaderSource =
 "uniform vec2 frag2Tex;\n"
 "uniform vec2 offset;\n"
 "uniform sampler2D texSampler;\n"
+"uniform vec4 bgColor;\n"
 "out vec4 color;\n"
 "void main() {\n"
 " vec2 tex = frag2Tex * (gl_FragCoord.xy + offset);\n"
 " if(tex.x < 0.f || tex.y < 0.f ||\n"
 "		tex.x > 1.f || tex.y > 1.f) {\n"
-"		color = vec4(0.4, 0.4, 0.4, 1.0);\n"
+"		color = bgColor;\n"
 "	} else {\n"
 " 	color = texture(texSampler, tex);\n"
 " }\n"
@@ -29,7 +30,8 @@ const float verts[] = {
 
 ShaderProgram::ShaderProgram()
 	:frag2TexLoc_(-1),
-	offsetLoc_(-1)
+	offsetLoc_(-1),
+	bgColorLoc_(-1)
 {
 	GLuint fragShader = 0, vertShader = 0;
 	fragShader = compileShader(fragShaderSource, GL_FRAGMENT_SHADER);
@@ -101,6 +103,14 @@ void ShaderProgram::setOffset(float x, float y)
 		offsetLoc_ = glGetUniformLocation(program_, "offset");
 	}
 	glProgramUniform2f(program_, offsetLoc_, x, y);
+}
+
+void ShaderProgram::setBgColor(float r, float g, float b, float a)
+{
+	if(bgColorLoc_ == -1) {
+		bgColorLoc_ = glGetUniformLocation(program_, "bgColor");
+	}
+	glProgramUniform4f(program_, bgColorLoc_, r, g, b, a);
 }
 
 void ShaderProgram::use()

@@ -41,6 +41,7 @@ const float scrollSpeed = 0.01f;
 #else
 const float scrollSpeed = 0.1f;
 #endif
+const size_t nClearColors = 3;
 
 GLuint compileShader(const std::string &source, GLenum type);
 GLuint createShaderProgram(GLuint vertShader, GLuint fragShader);
@@ -55,7 +56,9 @@ ImgviewApp::ImgviewApp(const std::string &filename)
 	winWidth_(initWidth), winHeight_(initHeight),
 	isFullscreen_(false),
 	context_(0, 30, initWidth, initHeight),
-	samplingMode_(SamplingMode::LINEAR)
+	samplingMode_(SamplingMode::LINEAR),
+	clearColorIdx_(0),
+	alphaBlendEnabled_(true)
 {
 	glViewport(0, 0, initWidth, initHeight);
     // Create and install global locale
@@ -127,7 +130,18 @@ void ImgviewApp::loadImagePaths()
 
 void ImgviewApp::redrawImage()
 {
-	glClearColor(0.1f, 0.1f, 0.1f, 1.f);
+	if (clearColorIdx_ == 0) { // gray
+		glClearColor(0.4f, 0.4f, 0.4f, 1.f);
+		shaderProgram_.setBgColor(0.4f, 0.4f, 0.4f, 1.f);
+	}
+	else if (clearColorIdx_ == 1) { // black
+		glClearColor(0.f, 0.f, 0.f, 1.f);
+		shaderProgram_.setBgColor(0.f, 0.f, 0.f, 1.f);
+	}
+	else if (clearColorIdx_ == 2) { // white
+		glClearColor(1.f, 1.f, 1.f, 1.f);
+		shaderProgram_.setBgColor(1.f, 1.f, 1.f, 1.f);
+	}
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glActiveTexture(GL_TEXTURE0);
@@ -136,8 +150,13 @@ void ImgviewApp::redrawImage()
 	shaderProgram_.bindVertexArray();
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	if (alphaBlendEnabled_) {
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	}
+	else {
+		glDisable(GL_BLEND);
+	}
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	shaderProgram_.unbindVertexArray();
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -156,6 +175,8 @@ const std::string controlsString =
 "C: Center image in window\n"
 "0: Set zoom level to 1:1\n"
 "S: Switch between linear/nearest neighbour sampling\n"
+"K: Cycle through different background colors\n"
+"B: Toggle alpha blending (transparency)\n"
 "H: Show these controls\n"
 "Q: Quit application\n";
 
@@ -231,6 +252,15 @@ mouseDown_ = false;
 			} else {
 				fitWindowToImage();
 			}
+		}
+		if (event.key.keysym.sym == SDLK_k) {
+			++clearColorIdx_;
+			clearColorIdx_ %= nClearColors;
+			redrawImage();
+		}
+		if (event.key.keysym.sym == SDLK_b) {
+			alphaBlendEnabled_ = !alphaBlendEnabled_;
+			redrawImage();
 		}
 
 		if (event.key.keysym.sym == SDLK_RIGHT) {
@@ -316,7 +346,7 @@ bool ImgviewApp::loadImage(const std::string &filename)
 	pbuf->sgetn((char*)buffer.data(), size);
 
 	// Decode the vector
-	cv::Mat mat = cv::imdecode(buffer, cv::IMREAD_COLOR);
+	cv::Mat mat = cv::imdecode(buffer, cv::IMREAD_UNCHANGED);
 	if(mat.rows == 0 || mat.cols == 0) {
 		return false;
 	}
@@ -328,8 +358,12 @@ bool ImgviewApp::loadImage(const std::string &filename)
 		mat = cv::imread(filename);
 	}
 	if(mat.channels() == 3) {
+		imFormat_ = "RGB";
 		cv::cvtColor(mat, mat, cv::COLOR_BGR2BGRA);
-	} 
+	}
+	else {
+		imFormat_ = "RGBA";
+	}
 
 	imAspect_ = (float)(mat.cols) / (float)(mat.rows);
 	imWidth_ = mat.cols; imHeight_ = mat.rows;
@@ -426,7 +460,7 @@ void ImgviewApp::setTitle()
 {
 	std::stringstream title;
 	title << "imgview: " << imagePaths_[imagePathIdx_].path().filename().string()
-		<< " " << imWidth_ << "x" << imHeight_ << "@" << 100.f/zoom_ << "%";
+		<< " " << imFormat_ << " " << imWidth_ << "x" << imHeight_ << "@" << 100.f/zoom_ << "%";
 	SDL_SetWindowTitle(context_.window(), title.str().c_str());
 }
 

@@ -19,13 +19,14 @@ public:
 	
   void setFrag2Tex(float x, float y);
   void setOffset(float x, float y);
+  void setBgColor(float r, float g, float b, float a);
 	
   void use();
   void bindVertexArray();
   void unbindVertexArray();
 private:
   GLuint program_;
-  GLint frag2TexLoc_, offsetLoc_;
+  GLint frag2TexLoc_, offsetLoc_, bgColorLoc_;
 	GLuint vertBuffer_, vao_;
   GLuint compileShader(const std::string &source, GLenum type);
 };
