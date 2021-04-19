@@ -15,7 +15,7 @@ You can also use the "Open With..." context menu option to open a file and/or ma
 
 # Usage
 
-Once opened you can use the left mouse button to scroll the image, and the mouse wheel to scroll.
+Once opened you can use the left mouse button to scroll the image, and the mouse wheel to zoom.
 
 Everything else is done with keyboard shortcuts - press 'H' to bring up a list of them.
 
