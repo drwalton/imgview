@@ -29,5 +29,7 @@ Everything else is done with keyboard shortcuts - press 'H' to bring up a list o
 * C: Center image in window
 * 0: Set zoom level to 1:1
 * S: Switch between linear/nearest neighbour sampling
+* B: Toggle transparency (alpha blending)
+* K: Cycle through background colors (gray/black/white)
 * H: Show help
 * Q: Quit application
