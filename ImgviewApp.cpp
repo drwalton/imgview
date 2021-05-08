@@ -13,10 +13,10 @@
 std::wstring ToUtf16(std::string str)
 {
 	std::wstring ret;
-	int len = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), NULL, 0);
+	int len = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), static_cast<int>(str.length()), NULL, 0);
 	if (len > 0) {
 		ret.resize(len);
-		MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), &ret[0], len);
+		MultiByteToWideChar(CP_UTF8, 0, str.c_str(), static_cast<int>(str.length()), &ret[0], len);
 	}
 	return ret;
 }
@@ -51,6 +51,7 @@ ImgviewApp::ImgviewApp(const std::string &filename)
 	:redraw_(true),
 	running_(true),
 	mouseDown_(false),
+	rightMouseDown_(false),
 	zoom_(1.0f),
 	winAspect_((float)(initWidth) / (float)(initHeight)),
 	winWidth_(initWidth), winHeight_(initHeight),
@@ -58,7 +59,8 @@ ImgviewApp::ImgviewApp(const std::string &filename)
 	context_(0, 30, initWidth, initHeight),
 	samplingMode_(SamplingMode::LINEAR),
 	clearColorIdx_(0),
-	alphaBlendEnabled_(true)
+	alphaBlendEnabled_(true),
+	imagePathIdx_(0)
 {
 	glViewport(0, 0, initWidth, initHeight);
     // Create and install global locale
@@ -168,10 +170,12 @@ const std::string controlsString =
 "Left/Right: Prev/Next Image\n"
 "SHIFT+Left/Right: Prev/Next Image (maintain current zoom)\n"
 "Mouse drag: Move viewpoint\n"
+"Right mouse drag: Move viewpoint vertically only\n"
 "Mouse wheel: Zoom in/out\n"
 "ALT+ENTER: Toggle Fullscreen\n"
 "F: Fit image in window\n"
 "SHIFT+F: Resize window to image dimensions\n"
+"T: Fit image horizontally, and move to top of image\n"
 "C: Center image in window\n"
 "0: Set zoom level to 1:1\n"
 "S: Switch between linear/nearest neighbour sampling\n"
@@ -202,13 +206,21 @@ void ImgviewApp::processEvent(SDL_Event &event)
 			 running_ = false;
 		 }
 
-	if(event.type == SDL_MOUSEBUTTONDOWN &&
-		 event.button.button == 1) {
-		mouseDown_ = true;
+	if(event.type == SDL_MOUSEBUTTONDOWN) {
+		if (event.button.button == SDL_BUTTON_LEFT) {
+			mouseDown_ = true;
+		}
+		else if (event.button.button == SDL_BUTTON_RIGHT) {
+			rightMouseDown_ = true;
+		}
 	}
-	if(event.type == SDL_MOUSEBUTTONUP &&
-event.button.button == 1) {
-mouseDown_ = false;
+	if(event.type == SDL_MOUSEBUTTONUP) {
+		if (event.button.button == SDL_BUTTON_LEFT) {
+			mouseDown_ = false;
+		}
+		else if (event.button.button == SDL_BUTTON_RIGHT) {
+			rightMouseDown_ = false;
+		}
 	}
 
 	if (event.type == SDL_KEYDOWN) {
@@ -252,6 +264,9 @@ mouseDown_ = false;
 			} else {
 				fitWindowToImage();
 			}
+		}
+		if (event.key.keysym.sym == SDLK_t) {
+			fitImageToWindowHorz();
 		}
 		if (event.key.keysym.sym == SDLK_k) {
 			++clearColorIdx_;
@@ -311,8 +326,10 @@ mouseDown_ = false;
 		}
 	}
 	if (event.type == SDL_MOUSEMOTION) {
-		if (mouseDown_) {
-			offset[0] -= event.motion.xrel;
+		if (mouseDown_ || rightMouseDown_) {
+			if (mouseDown_) {
+				offset[0] -= event.motion.xrel;
+			}
 			offset[1] += event.motion.yrel;
 			shaderProgram_.setOffset(offset[0], offset[1]);
 			redraw_ = true;
@@ -418,6 +435,13 @@ void ImgviewApp::fitImageToWindow()
 	centerImageInWindow();
 }
 
+void ImgviewApp::fitImageToWindowHorz()
+{
+	zoom_ = float(imWidth_) / float(winWidth_);
+	updateZoom();
+	centerImageInWindowTop();
+}
+
 void ImgviewApp::fitWindowToImage()
 {
 	SDL_SetWindowSize(context_.window(), imWidth_, imHeight_);
@@ -428,6 +452,14 @@ void ImgviewApp::centerImageInWindow()
 {
 	offset[0] = -((winWidth_*.5f) - (imWidth_/(multisampleFactor*1.f*zoom_)));
 	offset[1] = -winHeight_*.5f - (imHeight_/(multisampleFactor*1.f*zoom_));
+	shaderProgram_.setOffset(offset[0], offset[1]);
+	redraw_ = true;
+}
+
+void ImgviewApp::centerImageInWindowTop()
+{
+	offset[0] = -((winWidth_*.5f) - (imWidth_/(multisampleFactor*1.f*zoom_)));
+	offset[1] = -winHeight_;
 	shaderProgram_.setOffset(offset[0], offset[1]);
 	redraw_ = true;
 }

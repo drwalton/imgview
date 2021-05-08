@@ -25,10 +25,12 @@ private:
 	void handleResize(int newWidth, int newHeight);
 
 	void fitImageToWindow();
+	void fitImageToWindowHorz();
 	void fitWindowToImage();
 	void resetZoom();
 	void updateZoom();
 	void centerImageInWindow();
+	void centerImageInWindowTop();
 
 	bool supportedFileExtension(const std::string &extension);
 	
@@ -39,7 +41,7 @@ private:
 	SdlGlContext context_;
 	ShaderProgram shaderProgram_;
 
-	bool redraw_, running_, mouseDown_, alphaBlendEnabled_;
+	bool redraw_, running_, mouseDown_, rightMouseDown_, alphaBlendEnabled_;
 	enum class SamplingMode {LINEAR, NEAREST};
 	SamplingMode samplingMode_;
 	void updateSamplingMode();
