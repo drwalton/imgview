@@ -4,4 +4,5 @@ xcode
 bin
 lib
 *.swp
+*.dll
 
