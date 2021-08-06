@@ -82,6 +82,12 @@ ImgviewApp::ImgviewApp(const std::string &filename)
 	fitImageToWindow();
 	
 	setTitle();
+
+	SDL_DisplayMode DM;
+	SDL_GetCurrentDisplayMode(0, &DM);
+	int height = DM.h - 75; int width = DM.w / 2;
+	SDL_SetWindowSize(context_.window(), width, height);
+	handleResize(width, height);
 }
 
 ImgviewApp::~ImgviewApp() throw()
