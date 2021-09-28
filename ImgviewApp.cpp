@@ -378,7 +378,7 @@ bool ImgviewApp::loadImage(const std::string &filename)
 		//<< mat.rows << ", " << mat.channels() << " channels" << std::endl;
 
 	if(mat.channels() != 3 && mat.channels() != 4) {
-		mat = cv::imread(filename);
+		mat = cv::imdecode(buffer, cv::IMREAD_COLOR);
 	}
 	if(mat.channels() == 3) {
 		imFormat_ = "RGB";
