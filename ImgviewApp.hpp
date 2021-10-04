@@ -5,6 +5,7 @@
 #include "ShaderProgram.hpp"
 
 #include <vector>
+#include <string>
 #include <boost/filesystem.hpp>
 #include <opencv2/opencv.hpp>
 
@@ -49,7 +50,7 @@ private:
 	float imAspect_, winAspect_, zoom_;
 	std::string imFormat_;
 	int imWidth_, imHeight_, winWidth_, winHeight_;
-	std::vector<boost::filesystem::directory_entry> imagePaths_;
+	std::vector<std::string> imagePaths_;
 	size_t imagePathIdx_, clearColorIdx_;
 	boost::filesystem::path initialImagePath_;
 	bool isFullscreen_;

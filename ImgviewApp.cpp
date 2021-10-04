@@ -124,7 +124,7 @@ void ImgviewApp::loadImagePaths()
 	{
 		if(boost::filesystem::is_regular_file(*i)) {
 			if(supportedFileExtension(i->path().extension().string())) {
-				imagePaths_.push_back(*i);
+				imagePaths_.push_back(i->path().string());
 				if(*i == initialImagePath_) {
 					imagePathIdx_ = imagePaths_.size() - 1;
 				}
@@ -134,6 +134,8 @@ void ImgviewApp::loadImagePaths()
 	if(imagePaths_.size() == 0) {
 		throw std::runtime_error("No images left in directory");
 	}
+
+	std::sort(imagePaths_.begin(), imagePaths_.end());
 }
 
 void ImgviewApp::redrawImage()
@@ -292,19 +294,19 @@ void ImgviewApp::processEvent(SDL_Event &event)
 		}
 		if (event.key.keysym.sym == SDLK_LEFT ||
 			event.key.keysym.sym == SDLK_RIGHT) {
-			if (!loadImage(imagePaths_[imagePathIdx_].path().string())) {
+			if (!loadImage(imagePaths_[imagePathIdx_])) {
 				//Couldn't load this image. Try rescanning directory.
 				std::cout << "Couldn't load image "
-					<< imagePaths_[imagePathIdx_].path().string()
+					<< imagePaths_[imagePathIdx_]
 					<< " rescanning directory..." << std::endl;
 				size_t tmp = imagePathIdx_;
 				loadImagePaths();
 				imagePathIdx_ = tmp % imagePaths_.size();
 
-				if (!loadImage(imagePaths_[imagePathIdx_].path().string())) {
+				if (!loadImage(imagePaths_[imagePathIdx_])) {
 					//After rescanning directory, still couldn't load image.
 					throw std::runtime_error("Couldn't open image " +
-						imagePaths_[imagePathIdx_].path().string());
+						imagePaths_[imagePathIdx_]);
 				}
 			}
 			setTitle();
@@ -497,8 +499,9 @@ bool ImgviewApp::supportedFileExtension(const std::string &extension)
 void ImgviewApp::setTitle()
 {
 	std::stringstream title;
-	title << "imgview: " << imagePaths_[imagePathIdx_].path().filename().string()
-		<< " " << imFormat_ << " " << imWidth_ << "x" << imHeight_ << "@" << 100.f/zoom_ << "%";
+	title << "imgview: " << boost::filesystem::path(imagePaths_[imagePathIdx_]).filename().string()
+		<< " (" << imagePathIdx_ << "/" << imagePaths_.size() << ") "
+		<< imFormat_ << " " << imWidth_ << "x" << imHeight_ << "@" << 100.f/zoom_ << "%";
 	SDL_SetWindowTitle(context_.window(), title.str().c_str());
 }
 
