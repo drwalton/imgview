@@ -116,6 +116,7 @@ void ImgviewApp::run()
 
 void ImgviewApp::loadImagePaths()
 {
+	// Find all files in current directory with an extension in the supported extensions.
 	imagePaths_.clear();
 	boost::filesystem::path imDir = initialImagePath_.parent_path();
 	boost::filesystem::directory_iterator i(imDir);
@@ -135,7 +136,18 @@ void ImgviewApp::loadImagePaths()
 		throw std::runtime_error("No images left in directory");
 	}
 
+	// Sort image paths to get correct ordering.
 	std::sort(imagePaths_.begin(), imagePaths_.end());
+
+	// Find index of initial loaded image so this is correct after sorting.
+	auto idx = std::find(imagePaths_.begin(), imagePaths_.end(), initialImagePath_.string());
+	if (idx == imagePaths_.end()) {
+		// Couldn't find the index, so set it to first image in directory as failsafe.
+		imagePathIdx_ = 0;
+	}
+	else {
+		imagePathIdx_ = std::distance(imagePaths_.begin(), idx);
+	}
 }
 
 void ImgviewApp::redrawImage()
