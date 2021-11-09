@@ -479,7 +479,7 @@ void ImgviewApp::centerImageInWindow()
 void ImgviewApp::centerImageInWindowTop()
 {
 	offset[0] = -((winWidth_*.5f) - (imWidth_/(multisampleFactor*1.f*zoom_)));
-	offset[1] = -winHeight_;
+	offset[1] = float(-winHeight_);
 	shaderProgram_.setOffset(offset[0], offset[1]);
 	redraw_ = true;
 }
