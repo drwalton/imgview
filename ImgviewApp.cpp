@@ -121,6 +121,7 @@ void ImgviewApp::run()
 
 void ImgviewApp::loadImagePaths()
 {
+	// Find all files in current directory with an extension in the supported extensions.
 	imagePaths_.clear();
 	boost::filesystem::path imDir = initialImagePath_.parent_path();
 	boost::filesystem::directory_iterator i(imDir);
@@ -129,7 +130,7 @@ void ImgviewApp::loadImagePaths()
 	{
 		if(boost::filesystem::is_regular_file(*i)) {
 			if(supportedFileExtension(i->path().extension().string())) {
-				imagePaths_.push_back(*i);
+				imagePaths_.push_back(i->path().string());
 				if(*i == initialImagePath_) {
 					imagePathIdx_ = imagePaths_.size() - 1;
 				}
@@ -138,6 +139,19 @@ void ImgviewApp::loadImagePaths()
 	}
 	if(imagePaths_.size() == 0) {
 		throw std::runtime_error("No images left in directory");
+	}
+
+	// Sort image paths to get correct ordering.
+	std::sort(imagePaths_.begin(), imagePaths_.end());
+
+	// Find index of initial loaded image so this is correct after sorting.
+	auto idx = std::find(imagePaths_.begin(), imagePaths_.end(), initialImagePath_.string());
+	if (idx == imagePaths_.end()) {
+		// Couldn't find the index, so set it to first image in directory as failsafe.
+		imagePathIdx_ = 0;
+	}
+	else {
+		imagePathIdx_ = std::distance(imagePaths_.begin(), idx);
 	}
 }
 
@@ -298,19 +312,19 @@ void ImgviewApp::processEvent(SDL_Event &event)
 		}
 		if (event.key.keysym.sym == SDLK_LEFT ||
 			event.key.keysym.sym == SDLK_RIGHT) {
-			if (!loadImage(imagePaths_[imagePathIdx_].path().string())) {
+			if (!loadImage(imagePaths_[imagePathIdx_])) {
 				//Couldn't load this image. Try rescanning directory.
 				std::cout << "Couldn't load image "
-					<< imagePaths_[imagePathIdx_].path().string()
+					<< imagePaths_[imagePathIdx_]
 					<< " rescanning directory..." << std::endl;
 				size_t tmp = imagePathIdx_;
 				loadImagePaths();
 				imagePathIdx_ = tmp % imagePaths_.size();
 
-				if (!loadImage(imagePaths_[imagePathIdx_].path().string())) {
+				if (!loadImage(imagePaths_[imagePathIdx_])) {
 					//After rescanning directory, still couldn't load image.
 					throw std::runtime_error("Couldn't open image " +
-						imagePaths_[imagePathIdx_].path().string());
+						imagePaths_[imagePathIdx_]);
 				}
 			}
 			setTitle();
@@ -384,7 +398,7 @@ bool ImgviewApp::loadImage(const std::string &filename)
 		//<< mat.rows << ", " << mat.channels() << " channels" << std::endl;
 
 	if(mat.channels() != 3 && mat.channels() != 4) {
-		mat = cv::imread(filename);
+		mat = cv::imdecode(buffer, cv::IMREAD_COLOR);
 	}
 	if(mat.channels() == 3) {
 		imFormat_ = "RGB";
@@ -527,8 +541,9 @@ bool ImgviewApp::supportedFileExtension(const std::string &extension)
 void ImgviewApp::setTitle()
 {
 	std::stringstream title;
-	title << "imgview: " << imagePaths_[imagePathIdx_].path().filename().string()
-		<< " " << imFormat_ << " " << imWidth_ << "x" << imHeight_ << "@" << 100.f/zoom_ << "%";
+	title << "imgview: " << boost::filesystem::path(imagePaths_[imagePathIdx_]).filename().string()
+		<< " (" << imagePathIdx_ << "/" << imagePaths_.size() << ") "
+		<< imFormat_ << " " << imWidth_ << "x" << imHeight_ << "@" << 100.f/zoom_ << "%";
 	SDL_SetWindowTitle(context_.window(), title.str().c_str());
 }
 

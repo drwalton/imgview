@@ -8,6 +8,15 @@ I mainly made this to have a small, simple alternative to the default image view
 * Holding shift whilst pressing left or right to change image will not change your zoom settings (useful when comparing two images of the same size).
 * For viewing documents saved as image files, 'T' fits the image to the screen horizontally, and moves to the top. You can then scroll vertically with the right mouse button.
 
+# Requirements
+
+* Boost
+* SDL 
+* OpenCV
+* GLEW
+
+Tested with Boost 1.73.0, SDL 2.0.12, OpenCV 4.3.0, GLEW 2.1.0.
+
 # Installation
 
 On Windows, build the application, put it wherever you like and then you can open image files just by dragging and dropping them onto imgview.exe.

@@ -30,29 +30,20 @@ find_package(GLEW REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(SDL REQUIRED)
-find_package(SDL_ttf REQUIRED)
 find_package(Boost COMPONENTS Filesystem System Program_Options Locale REQUIRED)
 
 include_directories(include)
 include_directories(.)
-include_directories(${GLUE_INCLUDE_DIRS})
 include_directories(${GLEW_INCLUDE_DIRS})
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${SDL_INCLUDE_DIRS})
-include_directories(${SDL_ttf_INCLUDE_DIRS})
 include_directories(${OPENCV_INCLUDE_DIRS})
 
 set(IMGVIEW_LIBRARIES
 	${SDL_LIBRARY}
 	${SDL_MAIN_LIBRARY}
-	${SDL_ttf_LIBRARIES}
 	${OPENGL_LIBRARIES}
 	${GLEW_LIBRARIES}
-
-	optimized
-		${glue_LIBRARIES_RELEASE}
-	debug
-		${glue_LIBRARIES_DEBUG}
 
 	optimized
 		${OPENCV_LIBRARIES}
