@@ -26,6 +26,7 @@ Everything else is done with keyboard shortcuts - press 'H' to bring up a list o
 * Right mouse drag: Move viewpoint vertically only
 * Mouse wheel: Zoom in/out
 * ALT+ENTER: Toggle Fullscreen
+* Keys 1 through 9: Move the window to the selected display # (needs multiple displays connected)
 * F: Fit image in window
 * T: Fit image in window horizontally, and move to top of image (good for documents)
 * SHIFT+F: Resize window to image dimensions

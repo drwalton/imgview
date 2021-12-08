@@ -32,6 +32,10 @@ private:
 	void centerImageInWindow();
 	void centerImageInWindowTop();
 
+	void setFullscreen(bool fullscreen);
+
+	void moveToDisplay(int displayIndex);
+
 	bool supportedFileExtension(const std::string &extension);
 	
 	void setTitle();
