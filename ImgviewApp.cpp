@@ -102,14 +102,11 @@ void ImgviewApp::run()
 	SDL_Event event;
 
 	while(running_) {
-
+		SDL_WaitEvent(&event);
+		processEvent(event);
 		if(redraw_) {
 			redrawImage();
 			redraw_ = false;
-		}
-
-		while(SDL_PollEvent(&event)) {
-			processEvent(event);
 		}
 	}
 }
@@ -291,11 +288,11 @@ void ImgviewApp::processEvent(SDL_Event &event)
 		if (event.key.keysym.sym == SDLK_k) {
 			++clearColorIdx_;
 			clearColorIdx_ %= nClearColors;
-			redrawImage();
+			redraw_ = true;
 		}
 		if (event.key.keysym.sym == SDLK_b) {
 			alphaBlendEnabled_ = !alphaBlendEnabled_;
-			redrawImage();
+			redraw_ = true;
 		}
 
 		if (event.key.keysym.sym == SDLK_RIGHT) {
