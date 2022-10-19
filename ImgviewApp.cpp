@@ -9,6 +9,10 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/fstream.hpp>
 
+const int verticalDisplayOffset = 75; // When the window is created, this offset is used to move the window down
+// slightly so that the title bar is visible. This value was set for windows 10, you may wish to change it on other
+// platforms.
+
 #ifdef _MSC_VER
 std::wstring ToUtf16(std::string str)
 {
@@ -28,7 +32,8 @@ const std::vector<std::string> supportedExtensions = {
 	".PNG", ".JPG", ".JPEG",//, ".GIF"
 	".webp", ".WEBP",
 	".tif", ".tiff", ".TIF", ".TIFF",
-	".pgm", ".PGM"
+	".pgm", ".PGM",
+	".bmp", ".BMP"
 	//".exr", ".EXR"
 };
 
@@ -85,7 +90,7 @@ ImgviewApp::ImgviewApp(const std::string &filename)
 
 	SDL_DisplayMode DM;
 	SDL_GetCurrentDisplayMode(0, &DM);
-	int height = DM.h - 75; int width = DM.w / 2;
+	int height = DM.h - verticalDisplayOffset; int width = DM.w / 2;
 	SDL_SetWindowSize(context_.window(), width, height);
 	handleResize(width, height);
 }
@@ -190,6 +195,7 @@ const std::string controlsString =
 "Right mouse drag: Move viewpoint vertically only\n"
 "Mouse wheel: Zoom in/out\n"
 "ALT+ENTER: Toggle Fullscreen\n"
+"1-9: Move window to display #\n"
 "F: Fit image in window\n"
 "SHIFT+F: Resize window to image dimensions\n"
 "T: Fit image horizontally, and move to top of image\n"
@@ -243,13 +249,8 @@ void ImgviewApp::processEvent(SDL_Event &event)
 	if (event.type == SDL_KEYDOWN) {
 		if (event.key.keysym.sym == SDLK_RETURN) {
 			if (event.key.keysym.mod & KMOD_ALT) {
-				if (isFullscreen_) {
-					SDL_SetWindowFullscreen(context_.window(), 0);
-					isFullscreen_ = false;
-				} else {
-					SDL_SetWindowFullscreen(context_.window(), SDL_WINDOW_FULLSCREEN_DESKTOP);
-					isFullscreen_ = true;
-				}
+				if (isFullscreen_) setFullscreen(false);
+				else setFullscreen(true);
 			}
 		}
 
@@ -262,6 +263,11 @@ void ImgviewApp::processEvent(SDL_Event &event)
 		if (event.key.keysym.sym == SDLK_0) {
 			resetZoom();
 		}
+		const SDL_KeyCode displayKeys[] = {SDLK_1, SDLK_2, SDLK_3, SDLK_4, SDLK_5, SDLK_6, SDLK_7, SDLK_8, SDLK_9};
+		for (int i = 0; i < 9; ++i) {
+			if (event.key.keysym.sym == displayKeys[i]) moveToDisplay(i);
+		}
+
 		if (event.key.keysym.sym == SDLK_h) {
 #ifdef _MSC_VER
 			MessageBox(NULL, controlsString.c_str(), "imgview Controls", MB_OK);
@@ -476,9 +482,33 @@ void ImgviewApp::centerImageInWindow()
 void ImgviewApp::centerImageInWindowTop()
 {
 	offset[0] = -((winWidth_*.5f) - (imWidth_/(multisampleFactor*1.f*zoom_)));
-	offset[1] = float(-winHeight_);
+	offset[1] = static_cast<float>(-winHeight_);
 	shaderProgram_.setOffset(offset[0], offset[1]);
 	redraw_ = true;
+}
+
+void ImgviewApp::setFullscreen(bool fullscreen)
+{
+	if (fullscreen) SDL_SetWindowFullscreen(context_.window(), SDL_WINDOW_FULLSCREEN_DESKTOP);
+	else SDL_SetWindowFullscreen(context_.window(), 0);
+	isFullscreen_ = fullscreen;
+}
+
+void ImgviewApp::moveToDisplay(int displayIndex)
+{
+	bool wasFullscreen = isFullscreen_;
+	if (isFullscreen_) setFullscreen(false);
+
+	int numDisplays = SDL_GetNumVideoDisplays();
+	if (displayIndex >= numDisplays) return; // If the display selected isn't connected, just return early.
+	
+	// Get dimensions of the selected display in the global display space.
+	SDL_Rect displayBounds;
+	SDL_GetDisplayBounds(displayIndex, &displayBounds);
+
+	SDL_SetWindowPosition(context_.window(), displayBounds.x, displayBounds.y + verticalDisplayOffset);
+
+	if (wasFullscreen) setFullscreen(true);
 }
 
 void ImgviewApp::resetZoom()
