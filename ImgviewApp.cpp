@@ -65,7 +65,8 @@ ImgviewApp::ImgviewApp(const std::string &filename)
 	samplingMode_(SamplingMode::LINEAR),
 	clearColorIdx_(0),
 	alphaBlendEnabled_(true),
-	imagePathIdx_(0)
+	imagePathIdx_(0),
+	currRotation_(0)
 {
 	glViewport(0, 0, initWidth, initHeight);
     // Create and install global locale
@@ -198,6 +199,7 @@ const std::string controlsString =
 "1-9: Move window to display #\n"
 "F: Fit image in window\n"
 "SHIFT+F: Resize window to image dimensions\n"
+"R: Rotate image 90 degrees clockwise\n"
 "T: Fit image horizontally, and move to top of image\n"
 "C: Center image in window\n"
 "0: Set zoom level to 1:1\n"
@@ -300,6 +302,12 @@ void ImgviewApp::processEvent(SDL_Event &event)
 			alphaBlendEnabled_ = !alphaBlendEnabled_;
 			redraw_ = true;
 		}
+		if (event.key.keysym.sym == SDLK_r) {
+			currRotation_ += 1;
+			redraw_ = true;
+			loadImage(imagePaths_[imagePathIdx_], currRotation_);
+			fitImageToWindow();
+		}
 
 		if (event.key.keysym.sym == SDLK_RIGHT) {
 			++imagePathIdx_; imagePathIdx_ %= imagePaths_.size();
@@ -309,6 +317,7 @@ void ImgviewApp::processEvent(SDL_Event &event)
 		}
 		if (event.key.keysym.sym == SDLK_LEFT ||
 			event.key.keysym.sym == SDLK_RIGHT) {
+			currRotation_ = 0;
 			if (!loadImage(imagePaths_[imagePathIdx_])) {
 				//Couldn't load this image. Try rescanning directory.
 				std::cout << "Couldn't load image "
@@ -332,6 +341,7 @@ void ImgviewApp::processEvent(SDL_Event &event)
 			} else {
 				redraw_ = true;
 			}
+			updateZoom();
 		}
 	}
 	if (event.type == SDL_WINDOWEVENT &&
@@ -361,7 +371,7 @@ void ImgviewApp::processEvent(SDL_Event &event)
 }
 
 
-bool ImgviewApp::loadImage(const std::string &filename)
+bool ImgviewApp::loadImage(const std::string& filename, int rotation)
 {
 	// On windows, convert to wstring as only utf16 is supported.
 #ifdef _MSC_VER
@@ -377,7 +387,7 @@ bool ImgviewApp::loadImage(const std::string &filename)
 	std::filebuf* pbuf = f.rdbuf();
 	size_t size = pbuf->pubseekoff(0, f.end);
 	pbuf->pubseekpos(0, f.in);
-	if(size == 0 || size == -1)  {
+	if (size == 0 || size == -1) {
 		return false;
 	}
 
@@ -387,22 +397,26 @@ bool ImgviewApp::loadImage(const std::string &filename)
 
 	// Decode the vector
 	cv::Mat mat = cv::imdecode(buffer, cv::IMREAD_UNCHANGED);
-	if(mat.rows == 0 || mat.cols == 0) {
+	if (mat.rows == 0 || mat.cols == 0) {
 		return false;
 	}
 
 	//std::cout << "Loaded image " << filename << " " << mat.cols << "x"
 		//<< mat.rows << ", " << mat.channels() << " channels" << std::endl;
 
-	if(mat.channels() != 3 && mat.channels() != 4) {
+	if (mat.channels() != 3 && mat.channels() != 4) {
 		mat = cv::imdecode(buffer, cv::IMREAD_COLOR);
 	}
-	if(mat.channels() == 3) {
+	if (mat.channels() == 3) {
 		imFormat_ = "RGB";
 		cv::cvtColor(mat, mat, cv::COLOR_BGR2BGRA);
 	}
 	else {
 		imFormat_ = "RGBA";
+	}
+	rotation = rotation % 4;
+	for (int r = 0; r < rotation; ++r) {
+		cv::rotate(mat, mat, cv::ROTATE_90_CLOCKWISE);
 	}
 
 	imAspect_ = (float)(mat.cols) / (float)(mat.rows);

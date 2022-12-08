@@ -22,7 +22,7 @@ private:
 
 	void redrawImage();
 	void processEvent(SDL_Event &event);
-	bool loadImage(const std::string &filename);
+	bool loadImage(const std::string &filename, int rotation=0);
 	void handleResize(int newWidth, int newHeight);
 
 	void fitImageToWindow();
@@ -58,6 +58,7 @@ private:
 	size_t imagePathIdx_, clearColorIdx_;
 	boost::filesystem::path initialImagePath_;
 	bool isFullscreen_;
+	int currRotation_;
 };
 
 #endif
