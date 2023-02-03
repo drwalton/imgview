@@ -538,7 +538,15 @@ void ImgviewApp::moveToDisplay(int displayIndex)
 
 void ImgviewApp::resetZoom()
 {
+	float prevZoom = zoom_;
 	zoom_ = 1.f;
+
+	// This adjusts the offset to keep the point in the image that's currently under the mouse cursor 
+	// in the same window location at the new zoom level.
+	offset[0] = (prevZoom / zoom_) * (winWidth_*0.5f + offset[0]) - winWidth_*0.5f;
+	float y = winHeight_ - mouseY_; // Need to flip y as GL uses +ve y up
+	offset[1] = (prevZoom / zoom_) * (winHeight_*0.5f + offset[1]) - winHeight_*0.5f;
+	shaderProgram_.setOffset(offset[0], offset[1]);
 	updateZoom();
 	redraw_ = true;
 }
