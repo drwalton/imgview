@@ -356,10 +356,11 @@ void ImgviewApp::processEvent(SDL_Event &event)
 			float prevZoom = zoom_;
 			zoom_ = newZoom;
 
-			// This adjusts the offset to keep the point in the image that's currently at the centre of the screen
-			// in the same place at the new zoom level.
-			offset[0] = (prevZoom / zoom_) * (winWidth_ * 0.5f + offset[0]) - (winWidth_ * 0.5f);
-			offset[1] = (prevZoom / zoom_) * (winHeight_ * 0.5f + offset[1]) - (winHeight_ * 0.5f);
+			// This adjusts the offset to keep the point in the image that's currently under the mouse cursor 
+			// in the same window location at the new zoom level.
+			offset[0] = (prevZoom / zoom_) * (mouseX_ + offset[0]) - mouseX_;
+			float y = winHeight_ - mouseY_; // Need to flip y as GL uses +ve y up
+			offset[1] = (prevZoom / zoom_) * (y + offset[1]) - y;
 			shaderProgram_.setOffset(offset[0], offset[1]);
 			updateZoom();
 			setTitle();
@@ -367,6 +368,8 @@ void ImgviewApp::processEvent(SDL_Event &event)
 		}
 	}
 	if (event.type == SDL_MOUSEMOTION) {
+		mouseX_ = event.motion.x;
+		mouseY_ = event.motion.y;
 		if (mouseDown_ || rightMouseDown_) {
 			if (mouseDown_) {
 				offset[0] -= event.motion.xrel;

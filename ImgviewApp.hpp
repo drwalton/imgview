@@ -57,6 +57,7 @@ private:
 	std::vector<std::string> imagePaths_;
 	size_t imagePathIdx_, clearColorIdx_;
 	boost::filesystem::path initialImagePath_;
+	float mouseX_, mouseY_;
 	bool isFullscreen_;
 	int currRotation_;
 };
