@@ -352,7 +352,15 @@ void ImgviewApp::processEvent(SDL_Event &event)
 	if (event.type == SDL_MOUSEWHEEL) {
 		if (event.wheel.y != 0) {
 			float newZoom = 1.f / zoom_ + scrollSpeed * event.wheel.y;
-			zoom_ = newZoom > minZoom ? 1.f / newZoom : 1.f / minZoom;
+			newZoom = newZoom > minZoom ? 1.f / newZoom : 1.f / minZoom;
+			float prevZoom = zoom_;
+			zoom_ = newZoom;
+
+			// This adjusts the offset to keep the point in the image that's currently at the centre of the screen
+			// in the same place at the new zoom level.
+			offset[0] = (prevZoom / zoom_) * (winWidth_ * 0.5f + offset[0]) - (winWidth_ * 0.5f);
+			offset[1] = (prevZoom / zoom_) * (winHeight_ * 0.5f + offset[1]) - (winHeight_ * 0.5f);
+			shaderProgram_.setOffset(offset[0], offset[1]);
 			updateZoom();
 			setTitle();
 			redraw_ = true;
@@ -554,7 +562,7 @@ void ImgviewApp::setTitle()
 	std::stringstream title;
 	title << "imgview: " << boost::filesystem::path(imagePaths_[imagePathIdx_]).filename().string()
 		<< " (" << imagePathIdx_ << "/" << imagePaths_.size() << ") "
-		<< imFormat_ << " " << imWidth_ << "x" << imHeight_ << "@" << 100.f/zoom_ << "%";
+		<< imFormat_ << " " << imWidth_ << "x" << imHeight_ << "@" << 100.f / zoom_ << "%";
 	SDL_SetWindowTitle(context_.window(), title.str().c_str());
 }
 
