@@ -64,6 +64,7 @@ add_executable(imgview WIN32
 	ShaderProgram.hpp
 
 	imgview.cpp
+	alphanum.hpp
 )
 
 target_link_libraries(imgview ${IMGVIEW_LIBRARIES})

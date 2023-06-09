@@ -8,6 +8,7 @@
 #include <boost/locale.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/fstream.hpp>
+#include "alphanum.hpp"
 
 const int verticalDisplayOffset = 75; // When the window is created, this offset is used to move the window down
 // slightly so that the title bar is visible. This value was set for windows 10, you may wish to change it on other
@@ -140,7 +141,7 @@ void ImgviewApp::loadImagePaths()
 	}
 
 	// Sort image paths to get correct ordering.
-	std::sort(imagePaths_.begin(), imagePaths_.end());
+	std::sort(imagePaths_.begin(), imagePaths_.end(), doj::alphanum_less<std::string>());
 
 	// Find index of initial loaded image so this is correct after sorting.
 	auto idx = std::find(imagePaths_.begin(), imagePaths_.end(), initialImagePath_.string());
@@ -315,8 +316,16 @@ void ImgviewApp::processEvent(SDL_Event &event)
 		if (event.key.keysym.sym == SDLK_LEFT) {
 			imagePathIdx_ = imagePathIdx_ == 0 ? imagePaths_.size() - 1 : imagePathIdx_ - 1;
 		}
+		if (event.key.keysym.sym == SDLK_UP) {
+			imagePathIdx_ += 5; imagePathIdx_ %= imagePaths_.size();
+		}
+		if (event.key.keysym.sym == SDLK_DOWN) {
+			imagePathIdx_ = imagePathIdx_ < 5 ? imagePaths_.size() - 1 : imagePathIdx_ - 5;
+		}
 		if (event.key.keysym.sym == SDLK_LEFT ||
-			event.key.keysym.sym == SDLK_RIGHT) {
+			event.key.keysym.sym == SDLK_RIGHT ||
+			event.key.keysym.sym == SDLK_UP ||
+			event.key.keysym.sym == SDLK_DOWN) {
 			currRotation_ = 0;
 			if (!loadImage(imagePaths_[imagePathIdx_])) {
 				//Couldn't load this image. Try rescanning directory.
