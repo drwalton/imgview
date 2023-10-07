@@ -6,7 +6,7 @@
 
 #include <vector>
 #include <string>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <opencv2/opencv.hpp>
 
 class ImgviewApp final
@@ -56,7 +56,7 @@ private:
 	int imWidth_, imHeight_, winWidth_, winHeight_;
 	std::vector<std::string> imagePaths_;
 	size_t imagePathIdx_, clearColorIdx_;
-	boost::filesystem::path initialImagePath_;
+	std::filesystem::path initialImagePath_;
 	float mouseX_, mouseY_;
 	bool isFullscreen_;
 	int currRotation_;

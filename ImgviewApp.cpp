@@ -5,9 +5,9 @@
 #include <string>
 #include <vector>
 #include <sstream>
-#include <boost/locale.hpp>
-#include <boost/filesystem/path.hpp>
-#include <boost/filesystem/fstream.hpp>
+#include <locale>
+#include <filesystem>
+#include <fstream>
 #include "alphanum.hpp"
 
 const int verticalDisplayOffset = 75; // When the window is created, this offset is used to move the window down
@@ -70,16 +70,10 @@ ImgviewApp::ImgviewApp(const std::string &filename)
 	currRotation_(0)
 {
 	glViewport(0, 0, initWidth, initHeight);
-    // Create and install global locale
-	boost::locale::generator gen;
-	gen.use_ansi_encoding(true);
-    std::locale::global(gen.generate(""));
-    // Make boost.filesystem use it
-    boost::filesystem::path::imbue(std::locale());
-    // Now Works perfectly fine with UTF-8!
+
 
 	initialImagePath_ = filename;
-	if(!boost::filesystem::is_regular_file(initialImagePath_)) {
+	if(!std::filesystem::is_regular_file(initialImagePath_)) {
 		throw std::runtime_error(
 			"Supplied image is not present, or not a regular file");
 	}
@@ -122,12 +116,12 @@ void ImgviewApp::loadImagePaths()
 {
 	// Find all files in current directory with an extension in the supported extensions.
 	imagePaths_.clear();
-	boost::filesystem::path imDir = initialImagePath_.parent_path();
-	boost::filesystem::directory_iterator i(imDir);
-	boost::filesystem::directory_iterator endItr;
+	std::filesystem::path imDir = initialImagePath_.parent_path();
+	std::filesystem::directory_iterator i(imDir);
+	std::filesystem::directory_iterator endItr;
 	for(; i != endItr; ++i)
 	{
-		if(boost::filesystem::is_regular_file(*i)) {
+		if(std::filesystem::is_regular_file(*i)) {
 			if(supportedFileExtension(i->path().extension().string())) {
 				imagePaths_.push_back(i->path().string());
 				if(*i == initialImagePath_) {
@@ -141,7 +135,7 @@ void ImgviewApp::loadImagePaths()
 	}
 
 	// Sort image paths to get correct ordering.
-	std::sort(imagePaths_.begin(), imagePaths_.end(), doj::alphanum_less<std::string>());
+	std::sort(imagePaths_.begin(), imagePaths_.end(), doj::alphanum_less());
 
 	// Find index of initial loaded image so this is correct after sorting.
 	auto idx = std::find(imagePaths_.begin(), imagePaths_.end(), initialImagePath_.string());
@@ -580,7 +574,7 @@ bool ImgviewApp::supportedFileExtension(const std::string &extension)
 void ImgviewApp::setTitle()
 {
 	std::stringstream title;
-	title << "imgview: " << boost::filesystem::path(imagePaths_[imagePathIdx_]).filename().string()
+	title << "imgview: " << std::filesystem::path(imagePaths_[imagePathIdx_]).filename().string()
 		<< " (" << imagePathIdx_ << "/" << imagePaths_.size() << ") "
 		<< imFormat_ << " " << imWidth_ << "x" << imHeight_ << "@" << 100.f / zoom_ << "%";
 	SDL_SetWindowTitle(context_.window(), title.str().c_str());
